@@ -15,6 +15,7 @@ except Exception:
 import datetime
 import webbrowser
 import os
+import urllib.parse
 
 try:
     import wikipedia
@@ -88,9 +89,43 @@ def run_assistant():
             strTime = datetime.datetime.now().strftime("%H:%M:%S")
             speak(f"The current time is {strTime}")
 
+        elif ('date' in query) or ('today' in query and 'time' not in query):
+            today = datetime.datetime.now().strftime("%A, %B %d, %Y")
+            speak(f"Today's date is {today}")
+
+        elif (('order' in query) and ('food' in query or 'pizza' in query or 'delivery' in query)) or ('order food' in query):
+            speak("Opening a food delivery service for you.")
+            try:
+                webbrowser.open("https://www.ubereats.com/")
+            except Exception:
+                speak("Unable to open the browser on this system.")
+
+        elif 'play' in query and ('music' in query or 'song' in query or 'listen' in query or 'play' in query):
+            # try to extract a search term; if none found, open YouTube
+            search = query
+            for w in ("play", "music", "song", "listen to", "listen"):
+                search = search.replace(w, "")
+            search = search.strip()
+            if search:
+                url = "https://www.youtube.com/results?search_query=" + urllib.parse.quote(search)
+                speak(f"Playing {search} on YouTube.")
+            else:
+                url = "https://www.youtube.com/"
+                speak("Opening YouTube music.")
+            try:
+                webbrowser.open(url)
+            except Exception:
+                speak("Unable to open the browser on this system.")
+
         elif 'joke' in query:
-            joke = pyjokes.get_joke()
-            speak(joke)
+            if HAS_PYJOKES:
+                try:
+                    joke = pyjokes.get_joke()
+                    speak(joke)
+                except Exception:
+                    speak("Sorry, I couldn't fetch a joke right now.")
+            else:
+                speak("Joke service is not available. Install the 'pyjokes' package to enable jokes.")
 
         elif 'exit' in query or 'bye' in query:
             speak("Goodbye! Have a nice day!")
